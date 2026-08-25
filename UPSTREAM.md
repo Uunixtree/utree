@@ -12,7 +12,6 @@ Every open pull request on [Old-Man-Programmer/tree](https://github.com/Old-Man-
 |---|---|---|
 | [#53](https://github.com/Old-Man-Programmer/tree/pull/53) | --prune hides directories at the -L cutoff | fixed |
 | [#52](https://github.com/Old-Man-Programmer/tree/pull/52) | -R sub-listing indent state | fixed |
-| [#51](https://github.com/Old-Man-Programmer/tree/pull/51) | full-tree walk exit status | fixed |
 | [#50](https://github.com/Old-Man-Programmer/tree/pull/50) | glob syntax error counts as match | fixed |
 | [#49](https://github.com/Old-Man-Programmer/tree/pull/49) | -J trailing comma, unopenable root | fixed |
 | [#48](https://github.com/Old-Man-Programmer/tree/pull/48) | -J missing comma after empty root | fixed |

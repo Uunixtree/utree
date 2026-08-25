@@ -86,3 +86,4 @@ Surprising upstream behavior that may or may not be intended; utree reproduces i
 
 - -R sub-listings list their own 00Tree.html (the output file is created before the walk, like tree's setoutput()).
 - Which of several symlinks to one target gets tagged `[recursive, not followed]` depends on visit order, and tree's two walking modes differ: plain listings register in sorted order, `--prune`/`--matchdirs`/`--du` in `readdir()` order. utree mirrors both.
+- Unreadable subdirectories drive the exit status to 2 in the plain walk but not under `--du`/`--prune`/`--matchdirs`. The maintainer has said the counting itself will be removed ([#51](https://github.com/Old-Man-Programmer/tree/pull/51)); utree mirrors the current behavior until that lands.
