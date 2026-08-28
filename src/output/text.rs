@@ -153,7 +153,7 @@ impl TextFormatter {
             out.write_all(b"\n")?;
 
             if let Some(comment) = &node.comment {
-                self.emit_comment(out, comment, stack, last)?;
+                self.emit_comment(out, comment, stack, last, opts.noindent)?;
             }
 
             if let Some(children) = &node.children {
@@ -175,14 +175,17 @@ impl TextFormatter {
         lines: &[Vec<u8>],
         stack: &[bool],
         last: bool,
+        noindent: bool,
     ) -> io::Result<()> {
         for (index, line) in lines.iter().enumerate() {
-            for &more in stack {
-                out.write_all(if more { self.glyphs.vert } else { b"   " })?;
+            if !noindent {
+                for &more in stack {
+                    out.write_all(if more { self.glyphs.vert } else { b"   " })?;
+                    out.write_all(b" ")?;
+                }
+                out.write_all(if last { b"   " } else { self.glyphs.vert })?;
                 out.write_all(b" ")?;
             }
-            out.write_all(if last { b"   " } else { self.glyphs.vert })?;
-            out.write_all(b" ")?;
 
             let glyph = if lines.len() == 1 {
                 self.glyphs.csingle

@@ -10,6 +10,7 @@ Every open pull request on [Old-Man-Programmer/tree](https://github.com/Old-Man-
 
 | PR | Subject | utree |
 |---|---|---|
+| [#54](https://github.com/Old-Man-Programmer/tree/pull/54) | --info comment lines ignore -i | fixed |
 | [#53](https://github.com/Old-Man-Programmer/tree/pull/53) | --prune hides directories at the -L cutoff | fixed |
 | [#52](https://github.com/Old-Man-Programmer/tree/pull/52) | -R sub-listing indent state | fixed |
 | [#50](https://github.com/Old-Man-Programmer/tree/pull/50) | glob syntax error counts as match | fixed |
