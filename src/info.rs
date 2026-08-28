@@ -16,6 +16,7 @@ struct InfoComment {
 
 struct InfoFile {
     base: Vec<u8>,
+    rel: Option<Vec<u8>>,
     comments: Vec<InfoComment>,
 }
 
@@ -80,6 +81,7 @@ impl InfoStack {
         if let Some(comments) = parse_info_file(file) {
             self.stack.push(InfoFile {
                 base: Vec::new(),
+                rel: None,
                 comments,
             });
         }
@@ -93,6 +95,7 @@ impl InfoStack {
             if let Some(comments) = parse_info_file(&file) {
                 self.stack.push(InfoFile {
                     base: dir.as_os_str().as_bytes().to_vec(),
+                    rel: None,
                     comments,
                 });
                 return true;
@@ -111,8 +114,15 @@ impl InfoStack {
                 let candidate = rpath.join(".info");
                 if candidate.is_file() {
                     if let Some(comments) = parse_info_file(&candidate) {
+                        let rel = std::fs::canonicalize(dir).ok().and_then(|root| {
+                            root.strip_prefix(&rpath)
+                                .ok()
+                                .filter(|r| !r.as_os_str().is_empty())
+                                .map(|r| r.as_os_str().as_bytes().to_vec())
+                        });
                         self.stack.push(InfoFile {
                             base: dir.as_os_str().as_bytes().to_vec(),
+                            rel,
                             comments,
                         });
                         return true;
@@ -135,6 +145,11 @@ impl InfoStack {
         isdir: bool,
     ) -> Option<Vec<Vec<u8>>> {
         for inf in self.stack.iter().rev() {
+            let relpath = inf.rel.as_ref().and_then(|rel| {
+                let sub = path.strip_prefix(inf.base.as_slice())?;
+                let sub = &sub[sub.iter().take_while(|&&c| c == b'/').count()..];
+                Some(join_path(rel, sub))
+            });
             for com in &inf.comments {
                 for pat in &com.patterns {
                     if patmatch(path, pat, isdir, false) == 1 {
@@ -144,6 +159,11 @@ impl InfoStack {
                         return Some(com.desc.clone());
                     }
                     if patmatch(path, &join_path(&inf.base, pat), isdir, false) == 1 {
+                        return Some(com.desc.clone());
+                    }
+                    if let Some(relpath) = &relpath
+                        && patmatch(relpath, pat, isdir, false) == 1
+                    {
                         return Some(com.desc.clone());
                     }
                 }
