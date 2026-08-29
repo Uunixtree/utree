@@ -138,10 +138,13 @@ fn build(dir: &Path, entries: &[Entry]) {
                 // Vary sizes and permission bits for the size sort and
                 // the -p/-F columns.
                 let path = dir.join(name);
-                let _ = fs::write(&path, vec![b'x'; name.len() * 3 % 17]);
-                let mode = 0o400 | (name.len() as u32 * 0o111) & 0o377;
-                let _ =
-                    fs::set_permissions(&path, std::os::unix::fs::PermissionsExt::from_mode(mode));
+                if fs::write(&path, vec![b'x'; name.len() * 3 % 17]).is_ok() {
+                    let mode = 0o400 | (name.len() as u32 * 0o111) & 0o377;
+                    let _ = fs::set_permissions(
+                        &path,
+                        std::os::unix::fs::PermissionsExt::from_mode(mode),
+                    );
+                }
             }
             Entry::Dir(name, children) => {
                 let path = dir.join(name);

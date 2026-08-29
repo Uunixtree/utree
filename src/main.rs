@@ -49,13 +49,7 @@ fn run(opts: &Options) -> std::io::Result<u64> {
         eprintln!("utree: Could not load gitignore file");
         std::process::exit(1);
     };
-    run_paths(
-        &mut walker,
-        opts,
-        &opts.paths,
-        opts.output_file.clone(),
-        &[],
-    )?;
+    run_paths(&mut walker, opts, &opts.paths, opts.output_file.clone())?;
     Ok(walker.errors())
 }
 
@@ -64,7 +58,6 @@ fn run_paths(
     opts: &Options,
     paths: &[OsString],
     out_file: Option<OsString>,
-    ghost: &[bool],
 ) -> std::io::Result<()> {
     // The output file is created before the walk, like tree's
     // setoutput(): a -R sub-listing therefore sees its own 00Tree.html.
@@ -85,10 +78,10 @@ fn run_paths(
     }
 
     let mut formatter: Box<dyn Formatter> = match opts.output {
-        OutputFormat::Text => Box::new(TextFormatter::new(opts, ghost)),
+        OutputFormat::Text => Box::new(TextFormatter::new(opts)),
         OutputFormat::Json => Box::new(JsonFormatter::new(opts)),
         OutputFormat::Xml => Box::new(XmlFormatter::new(opts)),
-        OutputFormat::Html => Box::new(HtmlFormatter::new(opts, ghost)),
+        OutputFormat::Html => Box::new(HtmlFormatter::new(opts)),
     };
     formatter.intro(&mut out, opts)?;
     for (i, root) in roots.iter().enumerate() {
@@ -107,47 +100,30 @@ fn run_paths(
         let mut boundaries = Vec::new();
         for root in &roots {
             if let RootKind::Opened(children) = &root.kind {
-                let mut stack = Vec::new();
-                collect_boundaries(&root.name, children, &mut stack, ghost, &mut boundaries);
+                collect_boundaries(&root.name, children, &mut boundaries);
             }
         }
-        for (boundary, sub_ghost) in boundaries {
+        for boundary in boundaries {
             use std::os::unix::ffi::OsStrExt;
             let path = OsString::from(std::ffi::OsStr::from_bytes(&boundary));
             let out = OsString::from(std::ffi::OsStr::from_bytes(&join_path(
                 &boundary,
                 b"00Tree.html",
             )));
-            run_paths(walker, opts, &[path], Some(out), &sub_ghost)?;
+            run_paths(walker, opts, &[path], Some(out))?;
         }
     }
     Ok(())
 }
 
-/// tree's -R reuses the global dirs[] indent array; a sub-listing
-/// therefore inherits the outer levels' states beyond its own depth.
-fn collect_boundaries(
-    parent: &[u8],
-    nodes: &[Node],
-    stack: &mut Vec<bool>,
-    inherited: &[bool],
-    out: &mut Vec<(Vec<u8>, Vec<bool>)>,
-) {
-    for (i, node) in nodes.iter().enumerate() {
-        let more = i + 1 < nodes.len();
+fn collect_boundaries(parent: &[u8], nodes: &[Node], out: &mut Vec<Vec<u8>>) {
+    for node in nodes {
         let path = join_path(parent, &node.name);
         if node.rerun_link {
-            let mut ghost = stack.clone();
-            ghost.push(more);
-            if inherited.len() > ghost.len() {
-                ghost.extend_from_slice(&inherited[ghost.len()..]);
-            }
-            out.push((path.clone(), ghost));
+            out.push(path.clone());
         }
         if let Some(children) = &node.children {
-            stack.push(more);
-            collect_boundaries(&path, children, stack, inherited, out);
-            stack.pop();
+            collect_boundaries(&path, children, out);
         }
     }
 }

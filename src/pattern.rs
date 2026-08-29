@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-//! Byte-level port of tree's `patmatch()` glob matcher, mirrored
-//! faithfully quirks included (a syntax error returns -1, which
-//! callers treat as a match, exactly like the C code).
+//! Byte-level port of tree's `patmatch()` glob matcher.
 
 /// Returns tree's convention: 1 match, 0 no match, -1 syntax error.
 pub fn patmatch(buf: &[u8], pat: &[u8], isdir: bool, ignore_case: bool) -> i32 {
@@ -159,14 +157,14 @@ pub fn any_match(
     check_paths: bool,
 ) -> bool {
     for pat in patterns {
-        if patmatch(name, pat, isdir, ignore_case) != 0 {
+        if patmatch(name, pat, isdir, ignore_case) == 1 {
             return true;
         }
         if check_paths {
             let mut rest = name;
             while let Some(sep) = rest.iter().position(|&c| c == b'/') {
                 rest = &rest[sep + 1..];
-                if patmatch(rest, pat, isdir, ignore_case) != 0 {
+                if patmatch(rest, pat, isdir, ignore_case) == 1 {
                     return true;
                 }
             }
@@ -215,8 +213,7 @@ mod tests {
         assert_eq!(m("foo.c", "*.c|*.h"), 1);
         assert_eq!(m("foo.h", "*.c|*.h"), 1);
         assert_eq!(m("foo.o", "*.c|*.h"), 0);
-        // Leading/trailing bar is a syntax error: -1, which callers
-        // treat as a match, exactly like tree.
+        // Leading/trailing bar is a syntax error: -1.
         assert_eq!(m("x", "|x"), -1);
     }
 

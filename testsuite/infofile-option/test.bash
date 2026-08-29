@@ -10,4 +10,8 @@ touch bootx/{a,b,c}
 ${tree} --infofile ${home}/_info > ${actual}/stdout
 
 
+
+printf '%s/bootx/a\n\tabsolute pattern comment\n' "${fixture}" > abs_info
+${tree} --infofile abs_info ${fixture} > ${actual}/absolute
+
 fin

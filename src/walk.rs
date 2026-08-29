@@ -90,13 +90,9 @@ impl Root {
                 ..Totals::default()
             },
             RootKind::Opened(children) => {
-                if children.is_empty() {
-                    Totals::default()
-                } else {
-                    let mut totals = count(children);
-                    totals.dirs += 1;
-                    totals
-                }
+                let mut totals = count(children);
+                totals.dirs += 1;
+                totals
             }
         };
         // tree: "if (flag.du) tot.size += info? info->size : 0;"
@@ -503,7 +499,9 @@ impl<'a> Walker<'a> {
                     match self.read_entries(&child_path, child_pattern_active, info_top) {
                         Err(_) => {
                             node.err = Some("error opening dir".to_string());
-                            self.errors += 1;
+                            if !self.full_tree_mode() {
+                                self.errors += 1;
+                            }
                         }
                         Ok(mut children) => {
                             if let Some(limit) = self.opts.file_limit
@@ -513,7 +511,9 @@ impl<'a> Walker<'a> {
                                     "{} entries exceeds filelimit, not opening dir",
                                     children.len()
                                 ));
-                                self.errors += 1;
+                                if !self.full_tree_mode() {
+                                    self.errors += 1;
+                                }
                             } else if !children.is_empty() {
                                 self.descend(
                                     &mut children,
@@ -537,9 +537,10 @@ impl<'a> Walker<'a> {
                 }
 
                 // tree.c: "prune empty folders, unless they match the
-                // requested pattern".
+                // requested pattern or sit at the -L cutoff".
                 if self.opts.prune
                     && node.children.is_none()
+                    && depth < self.level_limit()
                     && !(self.opts.matchdirs
                         && pattern_active
                         && !self.opts.patterns.is_empty()

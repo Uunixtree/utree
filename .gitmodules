@@ -1,4 +1,5 @@
 [submodule "reference"]
 	path = reference
-	url = https://github.com/Old-Man-Programmer/tree
+	url = https://github.com/Uunixtree/reference-tree
+	branch = ref-v2.3.2
 	ignore = untracked

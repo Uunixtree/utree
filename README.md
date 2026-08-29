@@ -2,7 +2,7 @@
 
 A Rust reimplementation of the classic Unix [`tree`](https://github.com/Old-Man-Programmer/tree) command, in the spirit of [uutils](https://github.com/uutils/coreutils). What sets it apart from the C original is safety: utree is written entirely in safe Rust, handles file names as raw bytes so that non-UTF-8 names cannot crash it, and is backed by a differential testsuite and fuzzer — a tree that is safe for its users.
 
-The behavior of a pinned reference build of tree is the specification, verified mechanically, and the pin follows upstream releases. For supported options the output is byte-identical to the reference; the few options utree does not implement fail with an explicit error rather than silently producing different output. See the man page for the option list and [COMPATIBILITY.md](COMPATIBILITY.md) for what is unimplemented, the few deliberate differences, and the tree bugs utree reproduces.
+The behavior of a pinned reference build of tree is the specification, verified mechanically. For supported options the output is byte-identical to the reference; the few options utree does not implement fail with an explicit error rather than silently producing different output. See the man page for the option list and [COMPATIBILITY.md](COMPATIBILITY.md) for where the reference is pinned and every known difference.
 
 ## Building and testing
 

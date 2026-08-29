@@ -66,7 +66,7 @@ fn run(opts: &Options, root: &std::path::Path) -> Totals {
     let mut walker = Walker::new(opts).unwrap();
     let root = walker.walk_root(&OsString::from(root.as_os_str()));
     let totals = root.totals();
-    let mut formatter = TextFormatter::new(opts, &[]);
+    let mut formatter = TextFormatter::new(opts);
     let mut sink = std::io::sink();
     formatter.emit_root(&mut sink, &root, opts, false).unwrap();
     formatter.emit_report(&mut sink, &totals, opts).unwrap();

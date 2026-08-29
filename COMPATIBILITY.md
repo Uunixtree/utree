@@ -1,6 +1,6 @@
 # Compatibility with tree
 
-The reference implementation is **tree v2.3.2** (built from the [2.3.2 tag](https://github.com/Old-Man-Programmer/tree/tree/2.3.2)). For supported options, utree's stdout is byte-identical to tree's under `LC_ALL=C` — that is what `testsuite/` verifies. This file records every way the two binaries can behave differently — features utree has not implemented, its few deliberate differences — and, in the last section, the tree bugs utree reproduces on purpose.
+The reference implementation is the pinned commit of the [`ref-v2.3.2` branch of Uunixtree/reference-tree](https://github.com/Uunixtree/reference-tree/tree/ref-v2.3.2), which stacks **tree v2.3.2** plus the bug fixes we have submitted upstream — the branch's commit log, one commit per upstream request, is the list of those fixes; the pin moves back to the upstream repository once they are merged and released. For supported options, utree's stdout is byte-identical to the reference under `LC_ALL=C` — that is what `testsuite/` verifies. This file records every way utree and the *upstream* tree can behave differently.
 
 ## Unimplemented
 
@@ -75,28 +75,15 @@ The one silent exception is tree's STDDATA_FD handshake (Linux: JSON is emitted 
 
 ## Deliberate differences
 
-Two places where utree implements the behavior but chose to differ.
-
 ### Error messages and --help/--version name utree
 
 Diagnostics are prefixed `utree:` instead of `tree:`, and the `--help`/`--version` text is utree's own. Trailing-line output (the `N directories, M files` report) and in-tree annotations (`[error opening dir]`, `[N entries exceeds filelimit, not opening dir]`, `[recursive, not followed]`) are byte-identical to tree. The one place stdout keeps tree's name is `-H`: the HTML header and footer identify the generator as tree v2.3.2 verbatim, banner and all, because the HTML output is byte-compared against the reference.
 
-### Exit code is consistent under --prune/--matchdirs
 
-tree exits 2 when it encounters an unreadable directory — except in the code path used by `--prune`/`--matchdirs`/`--du`, which forgets to count those errors and exits 0. The same failure should produce the same exit code, so utree exits 2 in both cases. (Candidate for an upstream report.)
+## tree quirks utree reproduces
 
-## tree bugs utree reproduces
+Surprising upstream behavior that may or may not be intended; utree reproduces it pending clarification.
 
-The specification is tree v2.3.2's *actual* behavior, not its intended behavior: fixing any of these would be a silent divergence the differential tests could no longer verify. They are listed here, sorted by confidence, because they are surprising and mostly undocumented upstream.
-
-### Clear bugs
-
-- -J's JSON is faithfully buggy: after any error, every later entry grows an empty `"contents":[    ]` array (tree's global error counter leaks into the output logic), and multiple roots lose their separating comma after an empty one — invalid JSON. (Candidate for an upstream report.)
-- -R sub-listings inherit the outer listing's indentation state, so deeper 00Tree.html files show continuation glyphs where branches belong (tree's global dirs[] array leaking); without -H they also list their own 00Tree.html. (Candidate for an upstream report.)
-- Glob syntax errors in `-P`/`-I` (e.g. a leading `|`) count as a match, mirroring patmatch's `-1` return being truthy in C. (Candidate for an upstream report.)
-
-### Bug or intended? Unclear
-
-- An empty directory as the root reports `0 directories, 0 files`; a normal root counts itself (`1 directory, ...`).
-- A plain-file argument prints `file  [error opening dir]` and counts as `1 file`, with exit status 0; a nonexistent path exits 2.
+- -R sub-listings list their own 00Tree.html (the output file is created before the walk, like tree's setoutput()).
 - Which of several symlinks to one target gets tagged `[recursive, not followed]` depends on visit order, and tree's two walking modes differ: plain listings register in sorted order, `--prune`/`--matchdirs`/`--du` in `readdir()` order. utree mirrors both.
+- Unreadable subdirectories drive the exit status to 2 in the plain walk but not under `--du`/`--prune`/`--matchdirs`. The maintainer has said the counting itself will be removed ([#51](https://github.com/Old-Man-Programmer/tree/pull/51)); utree mirrors the current behavior until that lands.

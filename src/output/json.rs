@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-//! -J backend: a port of tree's json.c, quirks included — after any
-//! error, every later entry gains an empty "contents" array (the
-//! global `errors` counter leaks into the descend flag), and multiple
-//! roots lose their separating comma after an empty one.
+//! -J backend: a port of tree's json.c.
 
 use std::io::{self, Write};
 
@@ -14,7 +11,6 @@ use crate::walk::{Meta, Node, Root, RootKind, join_path};
 pub struct JsonFormatter {
     ids: Ids,
     now: i64,
-    errors_seen: bool,
 }
 
 fn type_of(mode: u32) -> &'static str {
@@ -55,7 +51,6 @@ impl JsonFormatter {
         JsonFormatter {
             ids: Ids::default(),
             now: super::now_epoch(),
-            errors_seen: false,
         }
     }
 
@@ -120,15 +115,6 @@ impl JsonFormatter {
         Ok(())
     }
 
-    /// The erroring entry itself opens "contents" via its own err;
-    /// list.c only bumps the global counter outside full-tree mode.
-    fn bump_errors(&mut self, err: Option<&str>, opts: &Options) {
-        let full_tree = opts.prune || opts.matchdirs || opts.du;
-        if !full_tree && err.is_some_and(|e| e != "recursive, not followed") {
-            self.errors_seen = true;
-        }
-    }
-
     fn emit_node(
         &mut self,
         out: &mut dyn Write,
@@ -164,9 +150,8 @@ impl JsonFormatter {
         }
         self.fillinfo(out, &node.meta, opts)?;
 
-        let direrr = node.is_dir && node.err.is_some();
         let descend = node.children.is_some();
-        let contents = descend || direrr || self.errors_seen;
+        let contents = descend || node.err.is_some();
         if contents {
             out.write_all(b",\"contents\":[")?;
         } else {
@@ -175,7 +160,6 @@ impl JsonFormatter {
         if let Some(err) = &node.err {
             write!(out, "{{\"error\": \"{err}\"}}")?;
         }
-        self.bump_errors(node.err.as_deref(), opts);
 
         if descend {
             write!(out, "{}", self.nl(opts))?;
@@ -238,15 +222,7 @@ impl Formatter for JsonFormatter {
             RootKind::Missing | RootKind::Unreadable => {
                 out.write_all(b",\"contents\":[")?;
                 write!(out, "{{\"error\": \"error opening dir\"}}")?;
-                write!(
-                    out,
-                    "{}{}",
-                    if more_roots { "," } else { "" },
-                    self.nl(opts)
-                )?;
-                if matches!(root.kind, RootKind::Missing) {
-                    self.errors_seen = true;
-                }
+                write!(out, "{}", self.nl(opts))?;
                 self.indent(out, 0, opts)?;
                 write!(
                     out,
@@ -261,12 +237,7 @@ impl Formatter for JsonFormatter {
                     out,
                     "{{\"error\": \"{entries} entries exceeds filelimit, not opening dir\"}}"
                 )?;
-                write!(
-                    out,
-                    "{}{}",
-                    if more_roots { "," } else { "" },
-                    self.nl(opts)
-                )?;
+                write!(out, "{}", self.nl(opts))?;
                 self.indent(out, 0, opts)?;
                 write!(
                     out,
@@ -276,8 +247,12 @@ impl Formatter for JsonFormatter {
                 )?;
             }
             RootKind::Opened(children) if children.is_empty() => {
-                // No comma even with more roots: mirrors the C flow.
-                write!(out, "}}{}", self.nl(opts))?;
+                write!(
+                    out,
+                    "}}{}{}",
+                    if more_roots { "," } else { "" },
+                    self.nl(opts)
+                )?;
             }
             RootKind::Opened(children) => {
                 out.write_all(b",\"contents\":[")?;

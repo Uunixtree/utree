@@ -18,8 +18,6 @@ pub struct HtmlFormatter {
     now: i64,
     /// strlen of the current root argument (tree's htmldirlen).
     dirlen: usize,
-    /// Outer dirs[] states leaking into a -R sub-listing.
-    ghost: Vec<bool>,
 }
 
 const VERSION_BANNER: &[&[u8]] = &[
@@ -53,13 +51,12 @@ fn html_print(out: &mut dyn Write, s: &[u8]) -> io::Result<()> {
 }
 
 impl HtmlFormatter {
-    pub fn new(opts: &Options, ghost: &[bool]) -> Self {
+    pub fn new(opts: &Options) -> Self {
         HtmlFormatter {
             glyphs: linedraw::select(opts),
             ids: Ids::default(),
             now: super::now_epoch(),
             dirlen: 0,
-            ghost: ghost.to_vec(),
         }
     }
 
@@ -90,19 +87,11 @@ impl HtmlFormatter {
             out.write_all(b"&nbsp;")?;
         }
         if let Some(last) = last {
-            if self.ghost.len() > stack.len() + 1 {
-                if last {
-                    out.write_all(b"&nbsp;&nbsp;&nbsp;")?;
-                } else {
-                    out.write_all(self.glyphs.vert)?;
-                }
+            out.write_all(if last {
+                self.glyphs.corner
             } else {
-                out.write_all(if last {
-                    self.glyphs.corner
-                } else {
-                    self.glyphs.tee
-                })?;
-            }
+                self.glyphs.tee
+            })?;
             out.write_all(b"&nbsp;")?;
         }
         Ok(())
