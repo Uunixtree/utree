@@ -10,6 +10,7 @@ Every open pull request on [Old-Man-Programmer/tree](https://github.com/Old-Man-
 
 | PR | Subject | utree |
 |---|---|---|
+| [#59](https://github.com/Old-Man-Programmer/tree/pull/59) | -H links dead for non-ASCII names | fixed |
 | [#55](https://github.com/Old-Man-Programmer/tree/pull/55) | parent-directory .info ignored for ./dir and absolute roots | fixed |
 | [#54](https://github.com/Old-Man-Programmer/tree/pull/54) | --info comment lines ignore -i | fixed |
 | [#53](https://github.com/Old-Man-Programmer/tree/pull/53) | --prune hides directories at the -L cutoff | fixed |
