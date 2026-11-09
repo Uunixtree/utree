@@ -90,7 +90,7 @@ impl XmlFormatter {
         if opts.show_date {
             let t = if opts.use_ctime { m.ctime } else { m.mtime };
             out.write_all(b" time=\"")?;
-            out.write_all(&meta::do_date(t, opts, self.now))?;
+            html_encode(out, &meta::do_date(t, opts, self.now))?;
             out.write_all(b"\"")?;
         }
         Ok(())

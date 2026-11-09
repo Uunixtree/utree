@@ -456,7 +456,7 @@ impl<'a> Walker<'a> {
                     self.visited.insert((node.dev, node.ino));
                 }
 
-                if do_descend && depth < self.level_limit() {
+                if do_descend && (depth < self.level_limit() || self.opts.du) {
                     // getfulltree descends symlinks via parent/<target>
                     // (absolute targets used as-is); listdir descends
                     // via parent/<name>. The path matters: pattern
@@ -540,7 +540,7 @@ impl<'a> Walker<'a> {
                 // requested pattern or sit at the -L cutoff".
                 if self.opts.prune
                     && node.children.is_none()
-                    && depth < self.level_limit()
+                    && (self.opts.du || depth < self.level_limit())
                     && !(self.opts.matchdirs
                         && pattern_active
                         && !self.opts.patterns.is_empty()
@@ -553,6 +553,9 @@ impl<'a> Walker<'a> {
                         ))
                 {
                     pruned = true;
+                } else if self.opts.du && depth >= self.level_limit() {
+                    node.children = None;
+                    node.err = None;
                 }
             }
 

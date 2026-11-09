@@ -242,6 +242,9 @@ fn parse_long(
                     )));
                 }
             };
+            if opts.sort == SortKey::Ctime {
+                opts.use_ctime = true;
+            }
         }
         b"--prune" => opts.prune = true,
         b"--matchdirs" => opts.matchdirs = true,
