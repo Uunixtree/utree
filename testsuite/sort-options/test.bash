@@ -21,4 +21,10 @@ ${tree} --sort=size > ${actual}/sort-size
 ${tree} --sort=version -r > ${actual}/sort-version-r
 ${tree} -U --dirsfirst > ${actual}/U-dirsfirst
 
+mkdir stamp
+touch -t 202001010000 stamp/old-file stamp
+${tree} --sort=ctime -D --timefmt '%Y' stamp > ${actual}/sort-ctime-D
+${tree} -c --sort=name -D --timefmt '%Y' stamp > ${actual}/c-sort-name-D
+${tree} -c -t -D --timefmt '%Y' stamp > ${actual}/c-t-D
+
 fin
