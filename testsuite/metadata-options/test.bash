@@ -30,5 +30,7 @@ ${tree} --inodes --device | sed -E 's/\[ *[0-9]+/[INODE/' > ${actual}/inodes-dev
 ${tree} --du > ${actual}/du
 ${tree} --du -h > ${actual}/du-h
 ${tree} --du --sort=size > ${actual}/du-sort-size
+${tree} -J -D --timefmt '%Y"%m\%d' sub > ${actual}/J-timefmt-escape
+${tree} -X -D --timefmt '%Y&%m<%d>"' sub > ${actual}/X-timefmt-escape
 
 fin
