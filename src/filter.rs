@@ -41,11 +41,8 @@ pub(crate) fn gittrim(s: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(e);
     let mut i = 0;
     while i < e {
-        if s[i] == b'\\' {
+        if s[i] == b'\\' && i + 1 < e {
             i += 1;
-            if i >= e {
-                break;
-            }
         }
         out.push(s[i]);
         i += 1;
@@ -206,5 +203,7 @@ mod tests {
         // An escaped trailing space survives, unescaped.
         assert_eq!(gittrim(b"foo\\ \n"), b"foo ");
         assert_eq!(gittrim(b"a\\#b"), b"a#b");
+        assert_eq!(gittrim(b"foo\\\n"), b"foo\\");
+        assert_eq!(gittrim(b"foo\\\\\n"), b"foo\\");
     }
 }

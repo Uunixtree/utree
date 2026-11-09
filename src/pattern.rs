@@ -130,7 +130,7 @@ pub fn patmatch(buf: &[u8], pat: &[u8], isdir: bool, ignore_case: bool) -> i32 {
             }
             _ => {
                 let mut c = at(pat, p);
-                if c == b'\\' {
+                if c == b'\\' && at(pat, p + 1) != 0 {
                     p += 1;
                     c = at(pat, p);
                 }
@@ -221,6 +221,14 @@ mod tests {
     fn ignore_case() {
         assert_eq!(patmatch(b"README", b"readme", false, true), 1);
         assert_eq!(patmatch(b"README", b"readme", false, false), 0);
+    }
+
+    #[test]
+    fn trailing_backslash() {
+        assert_eq!(m("foo\\", "foo\\"), 1);
+        assert_eq!(m("foo", "foo\\"), 0);
+        assert_eq!(m("a*", "a\\*"), 1);
+        assert_eq!(m("ab", "a\\*"), 0);
     }
 
     #[test]
