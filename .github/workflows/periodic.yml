@@ -1,0 +1,42 @@
+name: Periodic
+
+on:
+  schedule:
+    - cron: "0 15 * * 0"
+  workflow_dispatch:
+    inputs:
+      cases:
+        description: Differential test cases
+        default: "100000"
+
+jobs:
+  differential:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: dtolnay/rust-toolchain@stable
+      - run: make -C testsuite reference
+      - run: cargo test --release --test differential
+        env:
+          UTREE_DIFF_CASES: ${{ inputs.cases || '100000' }}
+
+  toolchains:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [stable, beta, nightly]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - run: cargo update
+      - run: make -C testsuite reference
+      - run: cargo test
+      - run: make -C testsuite check
