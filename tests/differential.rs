@@ -188,6 +188,18 @@ fn run(bin: &Path, args: &[String], cwd: &Path) -> (Vec<u8>, i32) {
     (output.stdout, output.status.code().unwrap_or(-1))
 }
 
+fn settle_clock() {
+    let since_second = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .subsec_millis();
+    if since_second < 50 {
+        std::thread::sleep(std::time::Duration::from_millis(u64::from(
+            50 - since_second,
+        )));
+    }
+}
+
 #[test]
 fn differential_against_reference_tree() {
     let Some(reference) = reference_tree() else {
@@ -213,6 +225,7 @@ fn differential_against_reference_tree() {
         let _ = fs::remove_dir_all(&scratch);
         fs::create_dir_all(&scratch).unwrap();
         build(&scratch, &entries);
+        settle_clock();
 
         let (ref_out, ref_code) = run(&reference, &args, &scratch);
         let (our_out, our_code) = run(&utree, &args, &scratch);
