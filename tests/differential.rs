@@ -24,11 +24,7 @@ enum Entry {
 }
 
 fn name_strategy() -> impl Strategy<Value = String> {
-    proptest::string::string_regex("[a-e.][a-e0-9. _-]{0,6}")
-        .unwrap()
-        .prop_filter("no . or .. or trailing space", |s| {
-            s != "." && s != ".." && !s.ends_with(' ') && !s.ends_with('.')
-        })
+    proptest::string::string_regex("[a-e]|[a-e.][a-e0-9. _-]{0,5}[a-e0-9_-]").unwrap()
 }
 
 fn entry_strategy(depth: u32) -> BoxedStrategy<Entry> {
