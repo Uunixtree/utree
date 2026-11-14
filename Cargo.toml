@@ -19,7 +19,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 
 [dev-dependencies]
 proptest = "1"
-criterion = "0.5"
+criterion = { package = "codspeed-criterion-compat", version = "6" }
 
 [[bench]]
 name = "walk"
