@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Set home, the load initialize.bash.
-# initialize.bash initializes the environment exectuing
+# initialize.bash initializes the environment executing
 # this test case.
 # initialize.bash defines helper functions: assert() and fin().
 home=$(cd $(dirname $0) && pwd)
