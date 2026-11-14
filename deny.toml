@@ -1,0 +1,13 @@
+[advisories]
+yanked = "deny"
+
+[licenses]
+allow = ["Apache-2.0", "MIT", "Unicode-3.0"]
+exceptions = [{ crate = "utree", allow = ["GPL-2.0-or-later"] }]
+
+[bans]
+multiple-versions = "allow"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
